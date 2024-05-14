@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Time Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+    <div id="map" style="width: 100%; height: 600px;"></div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        var map = L.map('map').setView([51.505, -0.09], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        var apiKey = 'YOUR_OPENROUTESERVICE_API_KEY';
+        var startPoint = [51.505, -0.09]; // Starting point (latitude, longitude)
+        var travelMode = 'driving-car'; // Travel mode: 'driving-car', 'cycling-regular', 'foot-walking', etc.
+        var range = 3600; // Travel time in seconds (e.g., 3600 seconds = 1 hour)
+
+        function getIsochrone() {
+            var url = `https://api.openrouteservice.org/v2/isochrones/${travelMode}`;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': apiKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    locations: [startPoint],
+                    range: [range]
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                L.geoJSON(data).addTo(map);
+            })
+            .catch(error => {
+                console.error('Error fetching isochrone data:', error);
+            });
+        }
+
+        getIsochrone();
+    </script>
+</body>
+</html>
